@@ -1,4 +1,5 @@
 import shapely
+import numpy as np
 import json
 import shapely.wkt
 from sentinelhub import BBox, CRS
