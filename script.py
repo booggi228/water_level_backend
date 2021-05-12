@@ -76,4 +76,8 @@ eopatch = list(result.values())[-1]
 
 from eolearn.core import OverwritePermission
 
-eopatch.save('./example_patch', overwrite_permission=OverwritePermission.OVERWRITE_FEATURES)
+#eopatch.save('./example_patch', overwrite_permission=OverwritePermission.OVERWRITE_FEATURES)
+import json
+# with open('data.json', 'w') as outfile:
+#     json.dump(eopatch, outfile)
+type(eopatch)
