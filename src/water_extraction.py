@@ -3,7 +3,6 @@ from eolearn.core import EOTask, FeatureType
 import numpy as np
 from skimage.filters import threshold_otsu
 import shapely.wkt
-from rasterio import features
 
 
 def calculate_valid_data_mask(eopatch):
@@ -62,27 +61,3 @@ class WaterDetector(EOTask):
         eopatch.add_feature(FeatureType.SCALAR, 'WATER_LEVEL', water_levels[...,np.newaxis])
         
         return eopatch
-
-def mask_to_polygons_layer(mask, eopatch, tolerance):
-    
-    all_polygons = []
-    bbox = eopatch.bbox
-    size_x = eopatch.meta_info['size_x']
-    size_y = eopatch.meta_info['size_y']
-    
-    vx = bbox.min_x
-    vy = bbox.max_y
-    cx = (bbox.max_x-bbox.min_x)/size_x
-    cy = (bbox.max_y-bbox.min_y)/size_y
-    
-    for shape, value in features.shapes(mask.astype(np.int16), mask=(mask == 1), transform=rasterio.Affine(cx, 0.0, vx,
-       0.0, -cy, vy)): 
-        return shapely.geometry.shape(shape).simplify(tolerance, False)
-        all_polygons.append(shapely.geometry.shape(shape))
-    
-    all_polygons = shapely.geometry.MultiPolygon(all_polygons)
-    if not all_polygons.is_valid:
-        all_polygons = all_polygons.buffer(0)
-        if all_polygons.type == 'Polygon':
-            all_polygons = shapely.geometry.MultiPolygon([all_polygons])
-    return all_polygons
