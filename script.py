@@ -19,7 +19,8 @@ from sentinelhub import CRS, DataCollection
 import sys
 sys.path.append('./src')
 # from visualisation import mask_to_polygons_layer, plot_rgb_w_water, plot_water_levels
-from geom_utils import get_bbox, calculate_valid_data_mask, calculate_coverage, AddValidDataCoverage, ValidDataCoveragePredicate, WaterDetector, toGeoJson
+from geom_utils import get_bbox, toGeoJson
+from water_extraction import calculate_valid_data_mask, calculate_coverage, AddValidDataCoverage, ValidDataCoveragePredicate, WaterDetector
 from login import login_config
 
 # Loading data

@@ -1,34 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.morphology import dilation
-import rasterio
-from rasterio import features
-import shapely
+from water_extraction import mask_to_polygons_layer
 
-
-def mask_to_polygons_layer(mask, eopatch, tolerance):
-    
-    all_polygons = []
-    bbox = eopatch.bbox
-    size_x = eopatch.meta_info['size_x']
-    size_y = eopatch.meta_info['size_y']
-    
-    vx = bbox.min_x
-    vy = bbox.max_y
-    cx = (bbox.max_x-bbox.min_x)/size_x
-    cy = (bbox.max_y-bbox.min_y)/size_y
-    
-    for shape, value in features.shapes(mask.astype(np.int16), mask=(mask == 1), transform=rasterio.Affine(cx, 0.0, vx,
-       0.0, -cy, vy)): 
-        return shapely.geometry.shape(shape).simplify(tolerance, False)
-        all_polygons.append(shapely.geometry.shape(shape))
-    
-    all_polygons = shapely.geometry.MultiPolygon(all_polygons)
-    if not all_polygons.is_valid:
-        all_polygons = all_polygons.buffer(0)
-        if all_polygons.type == 'Polygon':
-            all_polygons = shapely.geometry.MultiPolygon([all_polygons])
-    return all_polygons
 
 def plot_rgb_w_water(eopatch, idx):
     ratio = np.abs(eopatch.bbox.max_x - eopatch.bbox.min_x) / np.abs(eopatch.bbox.max_y - eopatch.bbox.min_y)
