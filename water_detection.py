@@ -1,4 +1,3 @@
-import geojson
 import json
 from shapely.geometry import shape
 from eolearn.core import LinearWorkflow, FeatureType
@@ -19,17 +18,25 @@ from sentinelhub import CRS, DataCollection
 
 import re
 import sys
-sys.path.append('./src')
-# from visualisation import mask_to_polygons_layer, plot_rgb_w_water, plot_water_levels
-from geom_utils import get_bbox, toGeoJson
-from water_extraction import calculate_valid_data_mask, calculate_coverage, AddValidDataCoverage, ValidDataCoveragePredicate, WaterDetector
-from login import login_config
-from json_convert_help import time_conv, list_of_dicts, NumpyArrayEncoder
-from json import JSONEncoder
+import io
+sys.path.append('./lib')
+from lib.visualisation import plot_rgb_w_water, plot_water_levels
+from lib.geom_utils import get_bbox, toGeoJson, get_observed_shape
+from lib.water_extraction import calculate_valid_data_mask, calculate_coverage, AddValidDataCoverage, ValidDataCoveragePredicate, WaterDetector
+from lib.login import login_config
+
 
 # Loading data
 with open('./data/data.json') as f:
     input_json = json.load(f)
+
+#input_stream = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
+
+# if __name__ == "main":
+#     with open('./data/data.json') as line:
+#     #input_json = None
+#         for line in input_stream:
+#             input_json = json.loads(line)
 
 features = input_json["geometry"]
 dam_nominal = shape(features)
@@ -78,41 +85,13 @@ result = workflow.execute({
 
 eopatch = list(result.values())[-1]
 
-mydic = {
-    'COVERAGE': eopatch.scalar['COVERAGE'],
-    'WATER_LEVEL': eopatch.scalar['WATER_LEVEL'],
-    'TIMESTAMP': eopatch.timestamp,
-    'BBOX': eopatch.bbox.geometry.bounds,
-    'CRS': eopatch.bbox.crs
-}
+output = []
 
-def CRS_transform(data):
+for i in range(len(eopatch.scalar['WATER_LEVEL'])):
+    numpyData = {"measurement_date": eopatch.timestamp[i].strftime('%d/%m/%Y'), "bbox": eopatch.bbox.geometry.bounds, "crs": eopatch.bbox.crs.epsg, "water_level": eopatch.scalar['WATER_LEVEL'][i,0], "cloud_coverage": eopatch.scalar['COVERAGE'][i,0], "measurement_type": "observed"}
+    obJect = {"type": "Feature", "properties": numpyData, "geometry": get_observed_shape(eopatch, i)}
+    output.append(obJect)
 
-    crs_conv = re.sub('\D', '', str(data))
-    crs_conv_list = list(crs_conv)
-    #b = ''.join(str(x) for x in a)
-    add_crs = crs_conv_list*(len(COVERAGE_convert)-1)
-    manipulate_crs_list = [add_crs[i:i+(len(COVERAGE_convert)-1)] for i in range(0, len(add_crs), (len(COVERAGE_convert)-1))]
-    #ccc = ''.join(str(x) for x in cc)
-    save = [''.join(x) for x in manipulate_crs_list]
-    #savee = map(int, save)
-    return save
-
-COVERAGE_convert = [y for x in mydic['COVERAGE'] for y in x]
-WATER_LEVEL_convert = [y for x in mydic['WATER_LEVEL'] for y in x]
-TIMESTAMP_convert = time_conv(mydic['TIMESTAMP'])
-bbox_copy = mydic['BBOX']*(len(COVERAGE_convert)-1)
-BBOX_convert = [bbox_copy[i:i+(len(COVERAGE_convert)-1)] for i in range(0, len(bbox_copy), (len(COVERAGE_convert)-1))]
-CRS_convert = CRS_transform(mydic['CRS'])
-
-numpyData = {"COVERAGE": COVERAGE_convert, "WATER_LEVEL": WATER_LEVEL_convert, "TIMESTAMP": TIMESTAMP_convert, "BBOX": BBOX_convert, "CRS": CRS_convert}
-new_numpyData = list_of_dicts(numpyData)
-
-
-json.dump(new_numpyData, open("result.json","w"), cls=NumpyArrayEncoder)
-
-
-
-# def time_conv(time):
-#     new_time = np.array([d.strftime('%Y.%m.%d') for d in time])
-#     return new_time
+output_json = json.dumps(output, ensure_ascii=False).encode('utf-8')
+sys.stdout.buffer.write(output_json)
+# print()

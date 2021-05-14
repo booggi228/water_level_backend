@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.morphology import dilation
-from water_extraction import mask_to_polygons_layer
-
+from lib.water_extraction import mask_to_polygons_layer
 
 def plot_rgb_w_water(eopatch, idx):
     ratio = np.abs(eopatch.bbox.max_x - eopatch.bbox.min_x) / np.abs(eopatch.bbox.max_y - eopatch.bbox.min_y)
@@ -12,8 +11,9 @@ def plot_rgb_w_water(eopatch, idx):
     observed = eopatch.mask['WATER_MASK'][idx,...,0]
     observed = dilation(observed)
     observed = np.ma.masked_where(observed == False, observed)
-    observedShape = mask_to_polygons_layer(observed, eopatch, tolerance)# вернуть
-    return toGeoJson(observedShape)
+    observedShape = mask_to_polygons_layer(observed, eopatch, tolerance)
+    #return toGeoJson(observedShape)
+    return observedShape
 
 def plot_water_levels(eopatch, max_coverage=1.0):
     fig, ax = plt.subplots(figsize=(20,7))

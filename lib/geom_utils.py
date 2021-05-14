@@ -5,6 +5,9 @@ import shapely.wkt
 from sentinelhub import BBox, CRS
 import rasterio
 from rasterio import features
+from skimage.filters import sobel
+from skimage.morphology import disk
+from skimage.morphology import erosion, dilation, opening, closing, white_tophat
 
 def get_bbox(polygon, inflate_bbox=0.1):
     """
@@ -47,3 +50,14 @@ def mask_to_polygons_layer(mask, eopatch, tolerance):
 
 def toGeoJson (shape):
     return json.dumps(shapely.geometry.mapping(shape))
+
+def get_observed_shape(eopatch, idx):
+    ratio = np.abs(eopatch.bbox.max_x - eopatch.bbox.min_x) / np.abs(eopatch.bbox.max_y - eopatch.bbox.min_y)
+    
+    tolerance = 0.00025
+    
+    observed = eopatch.mask['WATER_MASK'][idx,...,0]
+    observed = dilation(observed)
+    observed = np.ma.masked_where(observed == False, observed)
+    observedShape = mask_to_polygons_layer(observed, eopatch, tolerance)
+    return shapely.geometry.mapping(observedShape)
