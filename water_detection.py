@@ -1,4 +1,5 @@
-import json
+import sys, json, io
+
 from shapely.geometry import shape
 from eolearn.core import LinearWorkflow, FeatureType
 
@@ -15,18 +16,12 @@ import numpy as np
 import geopandas as gpd
 # sentinelhub-py package
 from sentinelhub import CRS, DataCollection
-
-import re
-import sys
-import io
-sys.path.append('./lib')
-from lib.visualisation import plot_rgb_w_water, plot_water_levels
 from lib.geom_utils import get_bbox, toGeoJson, get_observed_shape
 from lib.water_extraction import calculate_valid_data_mask, calculate_coverage, AddValidDataCoverage, ValidDataCoveragePredicate, WaterDetector
 from lib.login import login_config
 
 
-# Loading data
+
 with open('./data/data.json') as f:
     input_json = json.load(f)
 

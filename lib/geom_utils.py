@@ -5,9 +5,9 @@ import shapely.wkt
 from sentinelhub import BBox, CRS
 import rasterio
 from rasterio import features
-from skimage.filters import sobel
-from skimage.morphology import disk
-from skimage.morphology import erosion, dilation, opening, closing, white_tophat
+#from skimage.filters import sobel
+#from skimage.morphology import disk
+from skimage.morphology import dilation
 
 def get_bbox(polygon, inflate_bbox=0.1):
     """
