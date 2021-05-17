@@ -22,18 +22,12 @@ from lib.login import login_config
 
 
 
-with open('./data/data.json') as f:
+with open('./data/map.geojson') as f:
     input_json = json.load(f)
 
-#input_stream = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
 
-# if __name__ == "main":
-#     with open('./data/data.json') as line:
-#     #input_json = None
-#         for line in input_stream:
-#             input_json = json.loads(line)
-
-features = input_json["geometry"]
+features = input_json["features"][0]["geometry"]
+#features = input_json["geometry"]
 dam_nominal = shape(features)
 dam_bbox = get_bbox(dam_nominal)
 
@@ -69,7 +63,8 @@ workflow = LinearWorkflow(download_task, calculate_ndwi, add_nominal_water, add_
                           add_coverage, remove_cloudy_scenes, water_detection)
 
 # Run the workflow
-time_interval = [input_json["startDate"],input_json["endDate"]] 
+#time_interval = [input_json["startDate"],input_json["endDate"]] 
+time_interval = [input_json["features"][0]["startDate"],input_json["features"][0]["endDate"]]
 
 result = workflow.execute({
     download_task: {
@@ -84,7 +79,8 @@ output = []
 
 for i in range(len(eopatch.scalar['WATER_LEVEL'])):
     numpyData = {"measurement_date": eopatch.timestamp[i].strftime('%d/%m/%Y'), "bbox": eopatch.bbox.geometry.bounds, "crs": eopatch.bbox.crs.epsg, "water_level": eopatch.scalar['WATER_LEVEL'][i,0], "cloud_coverage": eopatch.scalar['COVERAGE'][i,0], "measurement_type": "observed"}
-    obJect = {"type": "Feature", "properties": numpyData, "geometry": get_observed_shape(eopatch, i)}
+    #obJect = {"type": "Feature", "properties": numpyData, "geometry": get_observed_shape(eopatch, i)}
+    obJect = {"type": "FeatureCollection", "features":[{"type":"Feature", "properties": numpyData, "geometry": get_observed_shape(eopatch, i)}]}
     output.append(obJect)
 
 output_json = json.dumps(output, ensure_ascii=False).encode('utf-8')
