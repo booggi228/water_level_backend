@@ -34,8 +34,8 @@ def mask_to_polygons_layer(mask, eopatch, tolerance):
 
 
 def calculate_valid_data_mask(eopatch):
-    is_data_mask = eopatch.mask['IS_DATA'].astype(np.bool)
-    cloud_mask = ~eopatch.mask['CLM'].astype(np.bool)
+    is_data_mask = eopatch.mask['IS_DATA'].astype(bool)
+    cloud_mask = ~eopatch.mask['CLM'].astype(bool)
     return np.logical_and(is_data_mask, cloud_mask)
 
 def calculate_coverage(array):
