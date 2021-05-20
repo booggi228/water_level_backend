@@ -1,12 +1,15 @@
 def login_config():
 
     from sentinelhub import SHConfig
+    import json
+    with open('./data/Феодосийское.geojson') as f:
+        input_json = json.load(f)
 
-    CLIENT_ID = '705de065-d047-4187-b8d2-01386b232165'
-    CLIENT_SECRET = 'U3n%1|B*pa@GvjA}UvxgyO@!RT-o}C}r1T?#7SwN'
+    CLIENT_ID = input_json["config"]["client_id"]
+    CLIENT_SECRET = input_json["config"]["client_secret"]
     
     config = SHConfig()
-    config.instance_id = '274430c0-0c82-493a-95c6-694e4640cf14'
+    config.instance_id = input_json["config"]["instance_id"]
     
     if CLIENT_ID and CLIENT_SECRET:
         config.sh_client_id = CLIENT_ID

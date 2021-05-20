@@ -21,13 +21,10 @@ from lib.water_extraction import calculate_valid_data_mask, calculate_coverage, 
 from lib.login import login_config
 
 
-
-with open('./data/map.geojson') as f:
+with open('./data/Феодосийское.geojson') as f:
     input_json = json.load(f)
 
-
 features = input_json["features"][0]["geometry"]
-#features = input_json["geometry"]
 dam_nominal = shape(features)
 dam_bbox = get_bbox(dam_nominal)
 
@@ -64,7 +61,7 @@ workflow = LinearWorkflow(download_task, calculate_ndwi, add_nominal_water, add_
 
 # Run the workflow
 #time_interval = [input_json["startDate"],input_json["endDate"]] 
-time_interval = [input_json["features"][0]["startDate"],input_json["features"][0]["endDate"]]
+time_interval = ['2021-01-06','2021-05-06']
 
 result = workflow.execute({
     download_task: {
