@@ -1,8 +1,6 @@
-import sys, json, io
-
+import sys, json
 from shapely.geometry import shape
 from eolearn.core import LinearWorkflow, FeatureType
-
 from eolearn.io import SentinelHubInputTask
 #from eolearn.core import LoadFromDisk, SaveToDisk
 from eolearn.mask import AddValidDataMaskTask
@@ -16,7 +14,7 @@ import numpy as np
 import geopandas as gpd
 # sentinelhub-py package
 from sentinelhub import CRS, DataCollection
-from lib.geom_utils import get_bbox, toGeoJson, get_observed_shape
+from lib.geom_utils import get_bbox, get_observed_shape
 from lib.water_extraction import calculate_valid_data_mask, calculate_coverage, AddValidDataCoverage, ValidDataCoveragePredicate, WaterDetector
 from lib.login import login_config
 
@@ -73,22 +71,11 @@ eopatch = list(result.values())[-1]
 
 output = []
 
-list = range(len(eopatch.scalar['WATER_LEVEL']))
+for i in range(len(eopatch.scalar['WATER_LEVEL'])) :
 
-for i, element in enumerate(list):
-
-    numpyData = {"measurement_date": eopatch.timestamp[i-1].strftime('%d/%m/%Y'), "bbox": eopatch.bbox.geometry.bounds, "crs": eopatch.bbox.crs.epsg, "water_level": eopatch.scalar['WATER_LEVEL'][i-1,0], "cloud_coverage": eopatch.scalar['COVERAGE'][i-1,0], "measurement_type": "observed"}
-
-    obJect = {"type": "FeatureCollection", "features":[{"type":"Feature", "properties": numpyData, "geometry": get_observed_shape(eopatch, i-1)}]}
+    numpyData = {"measurement_date": eopatch.timestamp[i].strftime('%d/%m/%Y'), "bbox": eopatch.bbox.geometry.bounds, "crs": eopatch.bbox.crs.epsg, "water_level": eopatch.scalar['WATER_LEVEL'][i,0], "cloud_coverage": eopatch.scalar['COVERAGE'][i,0], "measurement_type": "observed"}
+    obJect = {"type": "FeatureCollection", "features":[{"type":"Feature", "properties": numpyData, "geometry": get_observed_shape(eopatch, i)}]}
     output.append(obJect)
-
-    if (i==len(list)-1):
-
-        numpyData_last = {"measurement_date": eopatch.timestamp[element].strftime('%d/%m/%Y'), "bbox": eopatch.bbox.geometry.bounds, "crs": eopatch.bbox.crs.epsg, "water_level": eopatch.scalar['WATER_LEVEL'][element,0], "cloud_coverage": eopatch.scalar['COVERAGE'][element,0], "measurement_type": "observed"}
-        obJect_last = {"last_observation": {"type": "FeatureCollection", "features":[{"type":"Feature", "properties": numpyData_last, "geometry": get_observed_shape(eopatch, element)}]}}
-
-        output.append(obJect_last)
 
 output_json = json.dumps(output, ensure_ascii=False).encode('utf-8')
 sys.stdout.buffer.write(output_json)
-# print()
